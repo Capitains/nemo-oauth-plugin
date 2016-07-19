@@ -4,6 +4,7 @@ from flask import redirect, url_for, session, request, jsonify
 from flask_nemo.plugin import PluginPrototype
 from pkg_resources import resource_filename
 from flask_oauthlib.client import OAuth
+from functools import wraps
 
 
 class NemoOauthPlugin(PluginPrototype):
@@ -67,13 +68,16 @@ class NemoOauthPlugin(PluginPrototype):
         self.authobj.tokengetter(self.oauth_token)
         self.authcallback = oauth_callback_url
 
-    def r_oauth_login(self):
+    def r_oauth_login(self, next=None):
         """
         Route for OAuth2 Login
 
+        :param next next url
+        :type str
+
         :return: Redirects to OAuth Provider Login URL
         """
-        #return self.authobj.authorize(callback=url_for('.r_oauth_authorized', _external=True))
+        session['next'] = next
         callback_url = self.authcallback
         if callback_url is None:
             callback_url = url_for('.r_oauth_authorized', _external=True)
@@ -96,10 +100,13 @@ class NemoOauthPlugin(PluginPrototype):
         ## TODO this is too specific to Perseids' api model. We should externalize.
         session['oauth_user_uri'] = user.data['user']['uri']
         session['oauth_user_name'] = user.data['user']['full_name']
-        return {
-            "template": "nemo_oauth_plugin::authorized.html",
-            "username": session['oauth_user_name']
-        }
+        if 'next' in session and session['next'] is not None:
+            return redirect(session['next'])
+        else:
+            return {
+                "template": "nemo_oauth_plugin::authorized.html",
+                "username": session['oauth_user_name']
+            }
 
     def oauth_token(token=None):
         """
@@ -109,3 +116,14 @@ class NemoOauthPlugin(PluginPrototype):
         """
         return session.get('oauth_token')
 
+    def oauth_required(f):
+        """
+        decorator to add to a view to require an oauth user
+        :return: decorated function
+        """
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'oauth_user_uri' not in session or session['oauth_user_uri'] is None:
+                return redirect(url_for('.r_oauth_login', next=request.url))
+            return f(*args,**kwargs)
+        return decorated_function
