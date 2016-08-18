@@ -46,7 +46,8 @@ class NemoOauthPlugin(PluginPrototype):
     CSS = [resource_filename("nemo_oauth_plugin","data/assets/css/nemo_oauth_plugin.css")]
     ROUTES = [
         ("/oauth/login","r_oauth_login",["GET"]),
-        ("/oauth/authorized","r_oauth_authorized",["GET"])
+        ("/oauth/authorized","r_oauth_authorized",["GET"]),
+        ("/oauth/logout","r_oauth_logout",["GET"])
     ]
 
     def __init__(self,app,oauth_name=None,oauth_key=None,oauth_secret=None,oauth_scope=None,oauth_access_token_url=None,
@@ -107,6 +108,17 @@ class NemoOauthPlugin(PluginPrototype):
                 "template": "nemo_oauth_plugin::authorized.html",
                 "username": session['oauth_user_name']
             }
+
+    def r_oauth_logout(self):
+        """
+        Route to clear the oauth data from the session
+        :return: {"template"}
+        """
+        session.pop('oauth_user_uri', None)
+        session.pop('oauth_user_name', None)
+        return {
+            "template": "main::index.html"
+        }
 
     def oauth_token(token=None):
         """
