@@ -69,7 +69,7 @@ class NemoOauthPlugin(PluginPrototype):
         self.authobj.tokengetter(self.oauth_token)
         self.authcallback = oauth_callback_url
 
-    def r_oauth_login(self, next=None):
+    def r_oauth_login(self):
         """
         Route for OAuth2 Login
 
@@ -78,7 +78,7 @@ class NemoOauthPlugin(PluginPrototype):
 
         :return: Redirects to OAuth Provider Login URL
         """
-        session['next'] = next
+        session['next'] = request.args.get('next','')
         callback_url = self.authcallback
         if callback_url is None:
             callback_url = url_for('.r_oauth_authorized', _external=True)
@@ -116,9 +116,13 @@ class NemoOauthPlugin(PluginPrototype):
         """
         session.pop('oauth_user_uri', None)
         session.pop('oauth_user_name', None)
-        return {
-            "template": "main::index.html"
-        }
+        next = request.args.get('next','')
+        if next is not None:
+            return redirect(session['next'])
+        else:
+            return {
+                "template": "main::index.html"
+            }
 
     def oauth_token(token=None):
         """
