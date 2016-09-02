@@ -132,6 +132,19 @@ class NemoOauthPlugin(PluginPrototype):
         """
         return session.get('oauth_token')
 
+    @property
+    def current_user(self):
+        """
+        Gets the current user from the session
+        :return { uri => <uri>, name => <name> }
+        """
+        if session['oauth_user_uri']:
+            return { 'uri': session['oauth_user_uri'],
+                     'name': session['oauth_user_name'] or session['oauth_user_uri']}
+        else:
+            return None
+
+
     def oauth_required(f):
         """
         decorator to add to a view to require an oauth user
