@@ -132,8 +132,7 @@ class NemoOauthPlugin(PluginPrototype):
         """
         return session.get('oauth_token')
 
-    @property
-    def current_user(self):
+    def current_user():
         """
         Gets the current user from the session
         :return { uri => <uri>, name => <name> }

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='nemo_oauth_plugin',
-    version="0.0.4",
+    version="0.0.5",
     packages=find_packages(exclude=["examples", "tests"]),
     url='https://github.com/Capitains/nemo-oauth-plugin',
     license='GNU GPL',
